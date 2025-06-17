@@ -1,0 +1,52 @@
+{#
+# Parameters:
+# - marine_region_id: The ID of the marine region to filter by.
+# - marine_region: The name of the marine region to filter by.
+# - observatories: The list of observatories to filter by (optional).
+# - depth: The depth range to filter by (optional).
+#   depth is a dict with keys value and operator.
+# - contact: list of names of people or organizations to filter by (optional).
+# - datetime_begin: The start date for the sampling (inclusive).
+# - datetime_end: The end date for the sampling (inclusive).
+# - sampling_method: The method of sampling to filter by.
+#}
+PREFIX prod: <https://data.emobon.embrc.eu/ns/product#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX emobon: <https://data.emobon.embrc.eu/ns/core#>
+PREFIX sampl: <https://data.emobon.embrc.eu/ns/sampling#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX onto: <http://www.ontotext.com/>
+PREFIX qudt: <http://qudt.org/schema/qudt/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT
+  ?obs_id
+  ?env_package
+  ?tot_depth_water_column
+  ?country
+  ?loc_regional_mgrid
+WHERE {
+    # link observatory
+    ?obs_id_id a emobon:Observatory .
+    # Optional: name of observatory
+    OPTIONAL { ?obs_id_id emobon:observatoryId ?obs_id . }
+    {% if obs_id %}
+    ?obs_id onto:fts ("{{ obs_id | join('~5 ') }}~5") .
+    {%- endif -%}
+    # Optional: water column depth
+    OPTIONAL { ?obs_id_id emobon:waterColumnDepth/qudt:numericValue ?tot_depth_water_column . }
+    # Optional: marine region
+    OPTIONAL { ?obs_id_id emobon:marineRegion ?loc_regional_mgrid . }
+    {% if loc_regional_mgrid %}
+    FILTER regex(str(?loc_regional_mgrid), "{{ loc_regional_mgrid }}") .
+    {%- endif -%}
+    # Optional: country
+    OPTIONAL { ?obs_id_id emobon:originCountry ?country . }
+    # Optional: sample type
+    OPTIONAL { ?obs_id_id emobon:sampleType ?env_package . }
+    {% if env_package %}
+    FILTER(str(?env_package), "{{ env_package }}") .
+    {%- endif -%}
+}

@@ -16,7 +16,7 @@ triplestoreBrokerQueries: dict[QueryName, NamedQueryInfo] = {
 }
 
 # SPARQL EndPoint to use - wrapped as Knowledge-Graph 'source'
-GDB_BASE: str = os.getenv("GDB_BASE", "http://localhost:7200/")
+GDB_BASE: str = os.getenv("GDB_BASE", "http://docker-dev.vliz.be:7201/")
 
 # production will be http://emobon-kb.web.vliz.be:7200/
 # deveopment will be http://localhost:7200/
@@ -49,8 +49,9 @@ def execute_to_df(name: str, **vars) -> pd.DataFrame:
 def execute_to_dict(name: str, **vars) -> dict:
     """Builds the sparql and executes, returning the result as a dict."""
     sparql = generate_sparql(name, **vars)
-    print(f"{sparql=}")
+    print(f"sparql=\n{sparql.replace('\\n', chr(10))}")
     result: QueryResult = GDB.query(sparql=sparql)
+    print(f"{result=}")
     return result.to_dict()
 
 
@@ -130,6 +131,21 @@ class TriplestoreBroker(Broker):
 
     def _execute_query_all_samples(self, params: dict) -> dict:
         return {}
+
+    def _execute_query_ssu(self, params: dict) -> dict:
+        """Execute the SSU query with the given parameters."""
+        _ssu_results: dict = execute_to_dict("ssu.sparql", **params)
+        return _ssu_results
+
+    def _execute_query_lsu(self, params: dict) -> dict:
+        """Execute the LSU query with the given parameters."""
+        _lsu_results: dict = execute_to_dict("lsu.sparql", **params)
+        return _lsu_results
+
+    def _execute_query_observatories(self, params: dict) -> dict:
+        """Execute the observatories query with the given parameters."""
+        _observatories_results: dict = execute_to_dict("observatories.sparql", **params)
+        return _observatories_results
 
     def execute(self, name: QueryName, params: dict | None = None) -> Result:
         if name not in TriplestoreBroker._queries:

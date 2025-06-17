@@ -1,0 +1,69 @@
+{#
+# This template is used to generate a SPARQL query for metagenomic sampling subset.
+# Parameters:
+# ref_code: Reference code for the ssuRNA sample.
+# ncbi_tax_id: NCBI taxonomic identifier for the sample.
+# scientific_name: Scientific name of the taxonomic value found.
+# abundance_lower: Lower threshold for abundance of the taxonomic value.
+# abundance_upper: Upper threshold for abundance of the taxonomic value.
+#}
+PREFIX prod: <https://data.emobon.embrc.eu/ns/product#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX emobon: <https://data.emobon.embrc.eu/ns/core#>
+PREFIX sampl: <https://data.emobon.embrc.eu/ns/sampling#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX onto: <http://www.ontotext.com/>
+PREFIX qudt: <http://qudt.org/schema/qudt/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT
+  ?sample
+  ?observatory
+  ?event
+  ?ref_code
+  ?ncbi_tax_id
+  ?scientific_name
+  ?taxon_rank
+  ?abundance
+WHERE {
+  ?sample a sosa:Sample .
+  # link event
+  ?sample sosa:isResultOf ?event .
+  # link observatory
+  ?event sampl:linkedToObservatory ?observatory .
+  # Optional filters
+  # name of observatory
+  ?observatory emobon:observatoryId ?observatory_id .
+  # linking between taxon annotations and sample
+  ?ref_code a prod:TaxonomicAnnotation .
+  {% if ref_code %}
+  {% if ref_code is iterable %}
+  FILTER (str(?ref_code) IN ({{ ref_code | join(', ') }})) .
+  {% else %}
+  FILTER regex(str(?ref_code), "{{ ref_code }}") .
+  {% endif %}
+  {%- endif -%}
+  ?ref_code prod:ofSample ?sample .
+  ?ref_code dct:identifier ?ncbi_tax_id .
+  ?ncbi_tax_id dct:scientificName ?scientific_name .
+  {% if scientific_name %}
+  ?scientific_name onto:fts ("{{ scientific_name }}~5") .
+  {%- endif -%}
+  ?ncbi_tax_id dct:taxonRank ?taxon_rank .
+  {% if ncbi_tax_id %}
+  {% if ncbi_tax_id is iterable %}
+  FILTER (str(?ncbi_tax_id) IN ({{ ncbi_tax_id | join(', ') }})) .
+  {% else %}
+  FILTER regex(str(?ncbi_tax_id), "{{ ncbi_tax_id }}") .
+  {% endif %}
+  {%- endif -%}
+  ?ref_code prod:ssuRNA ?abundance .
+  {% if abundance_lower %}
+  FILTER(?abundance >= {{ abundance_lower }}) .
+  {%- endif -%}
+  {% if abundance_upper %}
+  FILTER(?abundance <= {{ abundance_upper }}) .
+  {%- endif -%}
+}

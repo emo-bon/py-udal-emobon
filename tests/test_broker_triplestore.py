@@ -8,11 +8,7 @@ from emobon.namedqueries import (
 )
 
 from emobon.result import Result
-import pandas as pd
-from pathlib import Path
 import datetime
-
-import pytest
 
 
 def test_observatory_overview():
@@ -140,3 +136,87 @@ def test_measured_values_with_params():
     assert "context" in result.data()
     # check if context is a dict
     assert isinstance(result.data()["context"], dict)
+
+
+def test_ssu_with_params():
+    """Test the SSU query with params."""
+    broker = TriplestoreBroker()
+    result = broker.execute(
+        "urn:embrc.eu:emobon:ssu",
+        {
+            "abundance_lower": 10,
+            "abundance_upper": 100,
+        },
+    )
+    assert isinstance(result, Result)
+    assert len(result.data()) > 0
+    print(result.data())
+    # check if result.data() is a dict
+    assert isinstance(result.data(), dict)
+    # check if the following keys are present in the result
+    # ref_code, ncbi_tax_id, abundance, scientific_name, taxon_rank, taxon_id
+    assert "ref_code" in result.data()
+    assert "ncbi_tax_id" in result.data()
+    assert "abundance" in result.data()
+    assert "scientific_name" in result.data()
+    assert "taxon_rank" in result.data()
+
+
+def test_lsu_with_params():
+    """Test the SSU query with params."""
+    broker = TriplestoreBroker()
+    result = broker.execute(
+        "urn:embrc.eu:emobon:lsu",
+        {
+            "abundance_lower": 10,
+            "abundance_upper": 100,
+        },
+    )
+    assert isinstance(result, Result)
+    assert len(result.data()) > 0
+    print(result.data())
+    # check if result.data() is a dict
+    assert isinstance(result.data(), dict)
+    # check if the following keys are present in the result
+    # ref_code, ncbi_tax_id, abundance, scientific_name, taxon_rank, taxon_id
+    assert "ref_code" in result.data()
+    assert "ncbi_tax_id" in result.data()
+    assert "abundance" in result.data()
+    assert "scientific_name" in result.data()
+    assert "taxon_rank" in result.data()
+
+
+def test_observatories():
+    """Test the observatories query."""
+    broker = TriplestoreBroker()
+    result = broker.execute("urn:embrc.eu:emobon:observatories")
+    assert isinstance(result, Result)
+    assert len(result.data()) > 0
+    # check if result.data() is a dict
+    assert isinstance(result.data(), dict)
+    # check if the following keys are present in the result
+    # uri, observatory_id, type, countries , broadbiomes , localbiomes
+    assert "obs_id" in result.data()
+    assert "country" in result.data()
+    assert "env_package" in result.data()
+    assert "loc_regional_mgrid" in result.data()
+    assert "tot_depth_water_column" in result.data()
+
+
+def test_observatories_with_params():
+    broker = TriplestoreBroker()
+    result = broker.execute(
+        "urn:embrc.eu:emobon:observatories",
+        {"loc_regional_mgrid": ["English Channel"]},
+    )
+    assert isinstance(result, Result)
+    assert len(result.data()) > 200
+    # check if result.data() is a dict
+    assert isinstance(result.data(), dict)
+    # check if the following keys are present in the result
+    # uri, observatory_id, type, countries , broadbiomes , localbiomes
+    assert "obs_id" in result.data()
+    assert "country" in result.data()
+    assert "env_package" in result.data()
+    assert "loc_regional_mgrid" in result.data()
+    assert "tot_depth_water_column" in result.data()
