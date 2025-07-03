@@ -1,0 +1,100 @@
+{#
+# This template is used to generate a SPARQL query for gathering predicate data from observatories.
+# param dephth: The depth of the query to explore the observatory data.
+#}
+PREFIX prod: <https://data.emobon.embrc.eu/ns/product#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX emobon: <https://data.emobon.embrc.eu/ns/core#>
+PREFIX sampl: <https://data.emobon.embrc.eu/ns/sampling#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX onto: <http://www.ontotext.com/>
+PREFIX qudt: <http://qudt.org/schema/qudt/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX path: <http://www.ontotext.com/path#>
+PREFIX dbr: <http://dbpedia.org/resource/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT DISTINCT
+ ?path_from_observatory_to_x
+ ?path_from_x_to_observatory
+ WHERE {
+    ?start a emobon:Observatory .
+    ?start ?p1 ?o1 .
+    {% if depth > 1 -%}
+    OPTIONAL {
+        ?o1 ?p2 ?o2 .
+        {% if depth > 2 -%}
+        OPTIONAL {
+           ?o2 ?p3 ?o3 .
+        {% if depth > 3 -%}
+            OPTIONAL {
+                ?o3 ?p4 ?o4 .
+        {% if depth > 4 -%}
+                OPTIONAL {
+                    ?o4 ?p5 ?o5 .   
+                }
+        {% endif -%}
+            }
+        {% endif -%}
+        }
+        {% endif -%}
+    }
+    {% endif -%}
+
+    # add bidirectional paths
+    ?b01 ?p01 ?start .
+    {% if depth > 1 -%}
+    OPTIONAL {
+        ?b02 ?p02 ?b01 .
+        {% if depth > 2 -%}
+        OPTIONAL {
+            ?b03 ?p03 ?b02 .
+            {% if depth > 3 -%}
+            OPTIONAL {
+                ?b04 ?p04 ?b03 .
+                {% if depth > 4 -%}
+                OPTIONAL {
+                    ?b05 ?p05 ?b04 .
+                }
+                {% endif -%}
+            }
+            {% endif -%}
+        }
+        {% endif -%}
+    }
+    {% endif -%}
+
+    BIND(
+        CONCAT(
+            IF(BOUND(?p1), CONCAT("<", STR(?p1), ">"), "")
+            {% if depth > 1 -%},
+            IF(BOUND(?p2), CONCAT("/", "<", STR(?p2), ">"), "")
+            {% endif -%}
+            {% if depth > 2 -%},
+            IF(BOUND(?p3), CONCAT("/", "<", STR(?p3), ">"), "")
+            {% endif -%}
+            {% if depth > 3 -%},
+            IF(BOUND(?p4), CONCAT("/", "<", STR(?p4), ">"), "")
+            {% endif -%}
+        ) AS ?path_from_observatory_to_x
+    )
+
+    BIND(
+        CONCAT(
+            IF(BOUND(?p01), CONCAT("<", STR(?p01), ">"), "")
+            {% if depth > 1 -%},
+            IF(BOUND(?p02), CONCAT("/", "<", STR(?p02), ">"), "")
+            {% endif -%}
+            {% if depth > 2 -%},
+            IF(BOUND(?p03), CONCAT("/", "<", STR(?p03), ">"), "")
+            {% endif -%}
+            {% if depth > 3 -%},
+            IF(BOUND(?p04), CONCAT("/", "<", STR(?p04), ">"), "")
+            {% endif -%}
+            
+        ) AS ?path_from_x_to_observatory
+    )
+}

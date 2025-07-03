@@ -1,0 +1,32 @@
+{#
+# This template is used to generate a SPARQL query for event data.
+#}
+PREFIX prod: <https://data.emobon.embrc.eu/ns/product#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX emobon: <https://data.emobon.embrc.eu/ns/core#>
+PREFIX sampl: <https://data.emobon.embrc.eu/ns/sampling#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX sosa: <http://www.w3.org/ns/sosa/>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX onto: <http://www.ontotext.com/>
+PREFIX qudt: <http://qudt.org/schema/qudt/>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT
+  ?sample
+  ?observatory
+  ?event
+  ?filtration_time
+  ?filter_upper_size
+WHERE {
+  ?sample a sosa:Sample .
+  # link event
+  ?sample sosa:isResultOf ?event .
+  # link observatory
+  ?event sampl:linkedToObservatory ?observatory .
+  # extra data from samples
+  ?sample dct:description ?description .
+  ?sample sampl:filterSizeRange ?filter_size_range .
+  OPTIONAL { ?sample sampl:filtrationTime/qudt:numericValue ?filtration_time . }
+  OPTIONAL { ?sample sampl:upperFilterSize/qudt:numericValue ?filter_upper_size . }
+}

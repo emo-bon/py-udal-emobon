@@ -16,7 +16,7 @@ triplestoreBrokerQueries: dict[QueryName, NamedQueryInfo] = {
 }
 
 # SPARQL EndPoint to use - wrapped as Knowledge-Graph 'source'
-GDB_BASE: str = os.getenv("GDB_BASE", "http://docker-dev.vliz.be:7201/")
+GDB_BASE: str = os.getenv("GDB_BASE", "http://localhost:7201/")
 
 # production will be http://emobon-kb.web.vliz.be:7200/
 # deveopment will be http://localhost:7200/
@@ -130,7 +130,40 @@ class TriplestoreBroker(Broker):
         return {}
 
     def _execute_query_all_samples(self, params: dict) -> dict:
-        return {}
+        """Execute the all samples query with the given parameters."""
+        _all_samples_results: dict = execute_to_dict("all_samples.sparql", **params)
+        return _all_samples_results
+
+    def _execute_query_observatory_options(self, params: dict) -> dict:
+        """Execute the observatory options query with the given parameters."""
+
+        if "depth" not in params or params["depth"] is None:
+            params["depth"] = 1
+
+        if isinstance(params.get("depth"), int):
+            depth = params["depth"]
+            if depth > 5:
+                raise ValueError("depth should not be greater than 5")
+
+        _observatory_options_results: dict = execute_to_dict(
+            "observatory_options.sparql", **params
+        )
+
+        # Filter each column in the dict so only unique values remain
+        for key, value in _observatory_options_results.items():
+            if isinstance(value, list):
+                # Remove duplicates while preserving order
+                seen = set()
+                unique_values = []
+                for item in value:
+                    if item not in seen:
+                        unique_values.append(item)
+                        seen.add(item)
+                _observatory_options_results[key] = unique_values
+
+        print(_observatory_options_results)
+
+        return _observatory_options_results
 
     def _execute_query_ssu(self, params: dict) -> dict:
         """Execute the SSU query with the given parameters."""
@@ -147,10 +180,11 @@ class TriplestoreBroker(Broker):
         _observatories_results: dict = execute_to_dict("observatories.sparql", **params)
         return _observatories_results
 
-    def execute(self, name: QueryName, params: dict | None = None) -> Result:
+    def execute(self, name: str, params: dict | None = None) -> Result:
         if name not in TriplestoreBroker._queries:
             raise ValueError(f"Unsupported query name: {name}")
-        query = TriplestoreBroker._queries[name]
+        query_name_typed: QueryName = name  # type: ignore
+        query: NamedQueryInfo = TriplestoreBroker._queries[query_name_typed]
         queryParams = params if params is not None else {}
         queryFunction = getattr(
             self, f"_execute_query_{name.split(':')[-1].replace('-', '_')}"

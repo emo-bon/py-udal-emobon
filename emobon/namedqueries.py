@@ -17,6 +17,7 @@ QueryName = Literal[
     "urn:embrc.eu:emobon:ssu",
     "urn:embrc.eu:emobon:lsu",
     "urn:embrc.eu:emobon:observatories",
+    "urn:embrc.eu:emobon:observatory-options",
 ]
 """Type to help development restricting query names to existing ones."""
 
@@ -75,6 +76,12 @@ QUERY_REGISTER: dict[QueryName, NamedQueryInfo] = {
                 udal.tliteral("water_column"),
             ],
             "loc_regional_mgrid": ["number", udal.tlist("number")],
+        },
+    ),
+    "urn:embrc.eu:emobon:observatory-options": NamedQueryInfo(
+        "urn:embrc.eu:emobon:observatory-options",
+        {
+            "depth": [udal.tliteral(x) for x in [1, 2, 3, 4]],
         },
     ),
 }

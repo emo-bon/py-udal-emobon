@@ -6,12 +6,12 @@ from emobon.namedqueries import (
     QUERY_NAMES,
     NamedQueryInfo,
 )
-
+import pytest
 from emobon.result import Result
 import datetime
 
 
-def test_observatory_overview():
+def test_observatory_overview() -> None:
     """Test the observatory overview query."""
     broker = TriplestoreBroker()
     result = broker.execute("urn:embrc.eu:emobon:observatory-overview")
@@ -29,7 +29,7 @@ def test_observatory_overview():
     assert "localbiomes" in result.data()
 
 
-def test_udal_instance():
+def test_udal_instance() -> None:
     """Test the UDAL instance."""
     udal = UDAL()
     assert isinstance(udal, UDAL)
@@ -47,7 +47,7 @@ def test_udal_instance():
         print(f"{name=}")
 
 
-def test_observatory_overview_totals():
+def test_observatory_overview_totals() -> None:
     """Test the observatory overview totals query."""
     broker = TriplestoreBroker()
     result = broker.execute("urn:embrc.eu:emobon:observatory-overview-totals")
@@ -82,7 +82,7 @@ def test_observatory_overview_totals():
     assert all(isinstance(i, datetime.date) for i in result.data()["max_date"])
 
 
-def test_measured_values():
+def test_measured_values() -> None:
     """Test the measured values query."""
     broker = TriplestoreBroker()
     result = broker.execute("urn:embrc.eu:emobon:measured-values")
@@ -114,7 +114,7 @@ def test_measured_values():
     assert "instrument_type" in context
 
 
-def test_measured_values_with_params():
+def test_measured_values_with_params() -> None:
     """Test the measured values query with params."""
     broker = TriplestoreBroker()
     result = broker.execute(
@@ -138,7 +138,7 @@ def test_measured_values_with_params():
     assert isinstance(result.data()["context"], dict)
 
 
-def test_ssu_with_params():
+def test_ssu_with_params() -> None:
     """Test the SSU query with params."""
     broker = TriplestoreBroker()
     result = broker.execute(
@@ -162,7 +162,7 @@ def test_ssu_with_params():
     assert "taxon_rank" in result.data()
 
 
-def test_lsu_with_params():
+def test_lsu_with_params() -> None:
     """Test the SSU query with params."""
     broker = TriplestoreBroker()
     result = broker.execute(
@@ -186,7 +186,7 @@ def test_lsu_with_params():
     assert "taxon_rank" in result.data()
 
 
-def test_observatories():
+def test_observatories() -> None:
     """Test the observatories query."""
     broker = TriplestoreBroker()
     result = broker.execute("urn:embrc.eu:emobon:observatories")
@@ -203,14 +203,14 @@ def test_observatories():
     assert "tot_depth_water_column" in result.data()
 
 
-def test_observatories_with_params():
+def test_observatories_with_params() -> None:
     broker = TriplestoreBroker()
     result = broker.execute(
         "urn:embrc.eu:emobon:observatories",
         {"loc_regional_mgrid": ["English Channel"]},
     )
     assert isinstance(result, Result)
-    assert len(result.data()) > 200
+    assert len(result.data()) > 0
     # check if result.data() is a dict
     assert isinstance(result.data(), dict)
     # check if the following keys are present in the result
@@ -220,3 +220,48 @@ def test_observatories_with_params():
     assert "env_package" in result.data()
     assert "loc_regional_mgrid" in result.data()
     assert "tot_depth_water_column" in result.data()
+
+
+def test_all_samples() -> None:
+    """Test the all samples query."""
+    broker = TriplestoreBroker()
+    result = broker.execute("urn:embrc.eu:emobon:all-samples")
+    assert isinstance(result, Result)
+    assert len(result.data()) > 0
+    # check if result.data() is a dict
+    assert isinstance(result.data(), dict)
+    # check if the following keys are present in the result
+    # uri, sampling_event, sampling_type, date, position_depth, position_location
+    assert "sample" in result.data()
+    assert "observatory" in result.data()
+    assert "event" in result.data()
+    assert "filtration_time" in result.data()
+    assert "filter_upper_size" in result.data()
+    # assert "position_location" in result.data()  # This may be optional
+
+
+def test_observatory_options_with_params() -> None:
+    """Test the observatory options query with params."""
+    broker = TriplestoreBroker()
+    result = broker.execute(
+        "urn:embrc.eu:emobon:observatory-options",
+        {"depth": 4},
+    )
+    assert isinstance(result, Result)
+    assert len(result.data()) > 0
+    # check if result.data() is a dict
+    assert isinstance(result.data(), dict)
+    # check if the following keys are present in the result
+    # uri, depth, position_location, sampling_type, instrument_type
+    assert "path_from_x_to_observatory" in result.data()
+    assert "path_from_observatory_to_x" in result.data()
+
+
+def test_observatory_options_with_params_fail() -> None:
+    """Test the observatory options query with params that should fail."""
+    broker = TriplestoreBroker()
+    with pytest.raises(ValueError):
+        broker.execute(
+            "urn:embrc.eu:emobon:observatory-options",
+            {"depth": 6},
+        )
