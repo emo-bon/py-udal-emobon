@@ -16,7 +16,7 @@ triplestoreBrokerQueries: dict[QueryName, NamedQueryInfo] = {
 }
 
 # SPARQL EndPoint to use - wrapped as Knowledge-Graph 'source'
-GDB_BASE: str = os.getenv("GDB_BASE", "http://localhost:7201/")
+GDB_BASE: str = os.getenv("GDB_BASE", "http://localhost:7200/")
 
 # production will be http://emobon-kb.web.vliz.be:7200/
 # deveopment will be http://localhost:7200/
@@ -178,6 +178,38 @@ class TriplestoreBroker(Broker):
     def _execute_query_observatories(self, params: dict) -> dict:
         """Execute the observatories query with the given parameters."""
         _observatories_results: dict = execute_to_dict("observatories.sparql", **params)
+
+        # convert wfk string to lat lon point
+        if "latlonpoint" in _observatories_results:
+            latlonpoint = _observatories_results["latlonpoint"]
+            print(f"latlonpoint={latlonpoint}")
+            if isinstance(latlonpoint, list):
+                latitudes = []
+                longitudes = []
+                for point in latlonpoint:
+                    if isinstance(point, str) and "Point" in point:
+                        try:
+                            point_str = point.split("Point")[1].strip(" ()")
+                            lat_str, lon_str = point_str.split()
+                            latitudes.append(float(lat_str))
+                            longitudes.append(float(lon_str))
+                        except Exception as e:
+                            print(f"Failed to parse latlonpoint: {point} ({e})")
+                            latitudes.append(None)
+                            longitudes.append(None)
+                _observatories_results["latitude"] = latitudes
+                _observatories_results["longitude"] = longitudes
+                del _observatories_results["latlonpoint"]
+            elif isinstance(latlonpoint, str) and "Point" in latlonpoint:
+                try:
+                    point_str = latlonpoint.split("Point")[1].strip(" ()")
+                    lat_str, lon_str = point_str.split()
+                    _observatories_results["latitude"] = float(lat_str)
+                    _observatories_results["longitude"] = float(lon_str)
+                except Exception as e:
+                    print(f"Failed to parse latlonpoint: {latlonpoint} ({e})")
+                del _observatories_results["latlonpoint"]
+
         return _observatories_results
 
     def execute(self, name: str, params: dict | None = None) -> Result:

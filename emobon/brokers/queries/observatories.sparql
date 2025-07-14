@@ -21,12 +21,18 @@ PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 PREFIX onto: <http://www.ontotext.com/>
 PREFIX qudt: <http://qudt.org/schema/qudt/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
-SELECT
+SELECT DISTINCT
   ?obs_id
   ?env_package
   ?tot_depth_water_column
-  ?country
+  ?geo_loc_name
   ?loc_regional_mgrid
+  ?ENA_accession_number_umbrella
+  ?latlonpoint
+  ?organization
+  ?organization_country
+  ?contact_name
+  ?contact_email
 WHERE {
     # link observatory
     ?obs_id_id a emobon:Observatory .
@@ -37,13 +43,42 @@ WHERE {
     {%- endif -%}
     # Optional: water column depth
     OPTIONAL { ?obs_id_id emobon:waterColumnDepth/qudt:numericValue ?tot_depth_water_column . }
+
+    OPTIONAL { ?obs_id_id emobon:enaStudyAccNum ?ENA_accession_number_umbrella}
+    OPTIONAL { ?obs_id_id emobon:geoLocation/<http://www.opengis.net/ont/geosparql#asWKT> ?latlonpoint}
+    
+    # optional organization and contact information
+    OPTIONAL { 
+      ?obs_id_id <https://schema.org/contactPoint> ?org . 
+      ?org a emobon:Organization .
+      ?org <https://schema.org/legalName> ?organization .
+      OPTIONAL {
+        ?org <https://schema.org/address>/<https://schema.org/addressCountry> ?organization_country .
+      }
+      OPTIONAL {
+        ?org <https://schema.org/member>/<https://schema.org/name> ?contact_name .
+        ?org <https://schema.org/member>/<https://schema.org/email> ?contact_email .
+      }
+    }
+
+    # contact info without org
+    OPTIONAL { 
+      ?obs_id_id <https://schema.org/contactPoint> ?person . 
+      ?person a <https://schema.org/Person> .
+      ?person <https://schema.org/name> ?contact_name .
+      ?person <https://schema.org/email> ?contact_email .
+    }
+    
+    # Optional: location
+    OPTIONAL { ?obs_id_id emobon:location ?location . }
+
     # Optional: marine region
     OPTIONAL { ?obs_id_id emobon:marineRegion ?loc_regional_mgrid . }
     {% if loc_regional_mgrid %}
     FILTER regex(str(?loc_regional_mgrid), "{{ loc_regional_mgrid }}") .
     {%- endif -%}
-    # Optional: country
-    OPTIONAL { ?obs_id_id emobon:originCountry ?country . }
+    # Optional: geo_loc_name
+    OPTIONAL { ?obs_id_id emobon:originCountry ?geo_loc_name . }
     # Optional: sample type
     OPTIONAL { ?obs_id_id emobon:sampleType ?env_package . }
     {% if env_package %}

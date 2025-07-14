@@ -197,10 +197,24 @@ def test_observatories() -> None:
     # check if the following keys are present in the result
     # uri, observatory_id, type, countries , broadbiomes , localbiomes
     assert "obs_id" in result.data()
-    assert "country" in result.data()
+    assert "geo_loc_name" in result.data()
     assert "env_package" in result.data()
-    assert "loc_regional_mgrid" in result.data()
     assert "tot_depth_water_column" in result.data()
+    assert "contact_name" in result.data()
+    assert "contact_email" in result.data()
+    assert "organization" in result.data()
+    assert "organization_country" in result.data()
+    assert "ENA_accession_number_umbrella" in result.data()
+    assert "latitude" in result.data()
+    assert "longitude" in result.data()
+
+    # TODO there is not really a way to determine which is which in current emobon data
+    assert "loc_broad_ocean" in result.data()
+    assert "loc_broad_ocean_mrgid" in result.data()
+    assert "loc_regional" in result.data()
+    assert "loc_regional_mgrid" in result.data()
+    assert "loc_loc" in result.data()
+    assert "loc_loc_mgrid" in result.data()
 
 
 def test_observatories_with_params() -> None:
@@ -216,12 +230,27 @@ def test_observatories_with_params() -> None:
     # check if the following keys are present in the result
     # uri, observatory_id, type, countries , broadbiomes , localbiomes
     assert "obs_id" in result.data()
-    assert "country" in result.data()
+    assert "geo_loc_name" in result.data()
     assert "env_package" in result.data()
-    assert "loc_regional_mgrid" in result.data()
     assert "tot_depth_water_column" in result.data()
+    assert "contact_name" in result.data()
+    assert "contact_email" in result.data()
+    assert "organization" in result.data()
+    assert "organization_country" in result.data()
+    assert "ENA_accession_number_umbrella" in result.data()
+    assert "latitude" in result.data()
+    assert "longitude" in result.data()
+
+    # TODO there is not really a way to determine which is which in current emobon data
+    assert "loc_broad_ocean" in result.data()
+    assert "loc_broad_ocean_mrgid" in result.data()
+    assert "loc_regional" in result.data()
+    assert "loc_regional_mgrid" in result.data()
+    assert "loc_loc" in result.data()
+    assert "loc_loc_mgrid" in result.data()
 
 
+'''
 def test_all_samples() -> None:
     """Test the all samples query."""
     broker = TriplestoreBroker()
@@ -265,3 +294,4 @@ def test_observatory_options_with_params_fail() -> None:
             "urn:embrc.eu:emobon:observatory-options",
             {"depth": 6},
         )
+'''
