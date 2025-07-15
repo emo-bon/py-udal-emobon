@@ -26,7 +26,7 @@ SELECT DISTINCT
   ?env_package
   ?tot_depth_water_column
   ?geo_loc_name
-  ?loc_regional_mgrid
+  (GROUP_CONCAT(DISTINCT ?loc_regional_; SEPARATOR=";") AS ?loc_regional_mrgid)
   ?ENA_accession_number_umbrella
   ?latlonpoint
   ?organization
@@ -73,9 +73,9 @@ WHERE {
     OPTIONAL { ?obs_id_id emobon:location ?location . }
 
     # Optional: marine region
-    OPTIONAL { ?obs_id_id emobon:marineRegion ?loc_regional_mgrid . }
-    {% if loc_regional_mgrid %}
-    FILTER regex(str(?loc_regional_mgrid), "{{ loc_regional_mgrid }}") .
+    OPTIONAL { ?obs_id_id emobon:marineRegion ?loc_regional_ . }
+    {% if loc_regional_mrgid %}
+    FILTER regex(str(?loc_regional_mrgid), "{{ loc_regional_ }}") .
     {%- endif -%}
     # Optional: geo_loc_name
     OPTIONAL { ?obs_id_id emobon:originCountry ?geo_loc_name . }
@@ -85,3 +85,4 @@ WHERE {
     FILTER(str(?env_package), "{{ env_package }}") .
     {%- endif -%}
 }
+GROUP BY ?obs_id ?env_package ?tot_depth_water_column ?geo_loc_name ?ENA_accession_number_umbrella ?latlonpoint ?organization ?organization_country ?contact_name ?contact_email
