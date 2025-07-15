@@ -24,7 +24,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT DISTINCT
   ?obs_id
   ?env_package
-  ?tot_depth_water_column
+  ?tot_depth_water_col
   ?geo_loc_name
   (GROUP_CONCAT(DISTINCT ?loc_regional_; SEPARATOR=";") AS ?loc_regional_mrgid)
   ?ENA_accession_number_umbrella
@@ -42,7 +42,7 @@ WHERE {
     ?obs_id onto:fts ("{{ obs_id | join('~5 ') }}~5") .
     {%- endif -%}
     # Optional: water column depth
-    OPTIONAL { ?obs_id_id emobon:waterColumnDepth/qudt:numericValue ?tot_depth_water_column . }
+    OPTIONAL { ?obs_id_id emobon:waterColumnDepth/qudt:numericValue ?tot_depth_water_col . }
 
     OPTIONAL { ?obs_id_id emobon:enaStudyAccNum ?ENA_accession_number_umbrella}
     OPTIONAL { ?obs_id_id emobon:geoLocation/<http://www.opengis.net/ont/geosparql#asWKT> ?latlonpoint}
@@ -85,4 +85,4 @@ WHERE {
     FILTER(str(?env_package), "{{ env_package }}") .
     {%- endif -%}
 }
-GROUP BY ?obs_id ?env_package ?tot_depth_water_column ?geo_loc_name ?ENA_accession_number_umbrella ?latlonpoint ?organization ?organization_country ?contact_name ?contact_email
+GROUP BY ?obs_id ?env_package ?tot_depth_water_col ?geo_loc_name ?ENA_accession_number_umbrella ?latlonpoint ?organization ?organization_country ?contact_name ?contact_email
